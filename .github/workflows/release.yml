@@ -1,0 +1,60 @@
+name: Release
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch:
+
+concurrency:
+    group: "${{ github.workflow }} @ ${{ github.ref }}"
+    cancel-in-progress: false
+
+permissions:
+    contents: write
+    pull-requests: write
+    id-token: write
+
+env:
+    BUN_VERSION: latest
+
+defaults:
+    run:
+        shell: bash
+
+jobs:
+    release:
+        name: Version Or Publish
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  registry-url: https://registry.npmjs.org
+
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: ${{ env.BUN_VERSION }}
+
+            - run: bun install --frozen-lockfile
+            - run: bun run fmt:check
+            - run: bun run lint
+            - run: bun run check-types
+            - run: bun run test
+            - run: bun run test-types
+            - run: bun run build
+
+            - name: Create release PR or publish
+              uses: changesets/action@v1
+              with:
+                  version: bun run version-packages
+                  publish: bun run release
+                  title: "chore: release"
+                  commit: "chore: release"
+                  createGithubReleases: true
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NPM_CONFIG_PROVENANCE: true

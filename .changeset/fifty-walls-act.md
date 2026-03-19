@@ -1,0 +1,5 @@
+---
+"keyrails": minor
+---
+
+Initial release

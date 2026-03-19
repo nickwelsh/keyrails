@@ -1,0 +1,110 @@
+name: JS
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+    group: "${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}"
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+    id-token: write
+
+env:
+    BUN_VERSION: latest
+
+defaults:
+    run:
+        shell: bash
+
+jobs:
+    format:
+        name: Oxfmt
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: ${{ env.BUN_VERSION }}
+            - run: bun install --frozen-lockfile
+            - run: bun run fmt:check
+
+    lint:
+        name: Oxlint
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: ${{ env.BUN_VERSION }}
+            - run: bun install --frozen-lockfile
+            - run: bun run lint
+
+    check-types:
+        name: Check Types
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: ${{ env.BUN_VERSION }}
+            - run: bun install --frozen-lockfile
+            - run: bun run check-types
+
+    test:
+        name: Test
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: ${{ env.BUN_VERSION }}
+            - run: bun install --frozen-lockfile
+            - name: Unit tests with coverage
+              id: unit_tests
+              continue-on-error: true
+              run: bun run test:ci
+            - name: Type tests
+              id: type_tests
+              continue-on-error: true
+              run: bun run test-types
+            - name: Upload coverage to Codecov
+              if: ${{ !cancelled() && hashFiles('coverage/lcov.info') != '' }}
+              uses: codecov/codecov-action@v5
+              with:
+                  use_oidc: true
+                  files: ./coverage/lcov.info,./coverage/cobertura-coverage.xml
+                  disable_search: true
+                  fail_ci_if_error: true
+                  flags: unit
+                  verbose: true
+            - name: Upload test results to Codecov
+              if: ${{ !cancelled() && hashFiles('coverage/test-results.junit.xml') != '' }}
+              uses: codecov/codecov-action@v5
+              with:
+                  use_oidc: true
+                  files: ./coverage/test-results.junit.xml
+                  disable_search: true
+                  report_type: test_results
+                  fail_ci_if_error: true
+                  flags: unit
+                  verbose: true
+            - name: Fail if tests failed
+              if: ${{ steps.unit_tests.outcome == 'failure' || steps.type_tests.outcome == 'failure' }}
+              run: exit 1
+
+    build:
+        name: Build
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: ${{ env.BUN_VERSION }}
+            - run: bun install --frozen-lockfile
+            - run: bun run build
