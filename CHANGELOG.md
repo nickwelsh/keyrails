@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0
+
+### Minor Changes
+
+- [`98bd3ee`](https://github.com/nickwelsh/keyrails/commit/98bd3eebac5ee321adcc856c939aebea91742b0f) Thanks [@nickwelsh](https://github.com/nickwelsh)! - Initial release
+
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
