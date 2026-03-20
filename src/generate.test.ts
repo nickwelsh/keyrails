@@ -40,9 +40,7 @@ test("lists values ids and entries with start and limit", async () => {
 	await tasks.set(tx, { id: "task-2", title: "B", done: true });
 	await tasks.set(tx, { id: "task-3", title: "C", done: false });
 
-	expect(await tasks.list(tx, { startAtID: "task-2", limit: 1 })).toEqual([
-		{ id: "task-2", title: "B", done: true },
-	]);
+	expect(await tasks.list(tx, { startAtID: "task-2", limit: 1 })).toEqual([{ id: "task-2", title: "B", done: true }]);
 	expect(await tasks.listIDs(tx, { startAtID: "task-2" })).toEqual(["task-2", "task-3"]);
 	expect(await tasks.listEntries(tx, { limit: 2 })).toEqual([
 		["task-1", { id: "task-1", title: "A", done: false }],
@@ -102,7 +100,7 @@ test("supports fully custom key functions and filters invalid scanned keys", asy
 		keyFromEntity: (_tx, entity) => `doc::${entity.slug}`,
 		keyToID: (key) => {
 			if (!key.startsWith("doc::")) {
-				return undefined;
+				return;
 			}
 			const id = key.slice("doc::".length);
 			return id === "skip" ? undefined : id;

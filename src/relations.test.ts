@@ -123,9 +123,7 @@ test("supports pivot has list alias and sync no-op branches", async () => {
 	});
 
 	expect(await aliasedPivot.has(tx, { sourceID: "Todo-3", relatedID: "Tag-A" })).toBe(true);
-	expect(await aliasedPivot.list(tx, "todo-3")).toEqual([
-		{ id: "Todo-3:Tag-A", todoID: "Todo-3", tagID: "Tag-A" },
-	]);
+	expect(await aliasedPivot.list(tx, "todo-3")).toEqual([{ id: "Todo-3:Tag-A", todoID: "Todo-3", tagID: "Tag-A" }]);
 
 	expect(
 		await aliasedPivot.sync(tx, {
