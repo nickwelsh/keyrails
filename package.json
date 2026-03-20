@@ -1,6 +1,6 @@
 {
 	"name": "keyrails",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"private": false,
 	"description": "Key-configurable CRUD and relation helpers for Replicache",
 	"keywords": [
